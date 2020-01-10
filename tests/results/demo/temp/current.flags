@@ -1,0 +1,19 @@
+
+	-in:file:fullatom
+	-ignore_zero_occupancy false
+	-overwrite
+	-ignore_unrecognized_res
+	-parser:script_vars start=11
+	-parser:script_vars end=16
+	-parser:script_vars cut=13
+	-parser:script_vars flank1=13
+	-parser:script_vars flank2=14
+	-parser:script_vars r1=11
+	-parser:script_vars r2=12
+	-parser:script_vars r3=13
+	-parser:script_vars r4=14
+	-parser:script_vars r5=15
+	-parser:script_vars r6=16
+	-parser:script_vars close_cycles=20
+	-parser:script_vars refine_cycles=1
+	
