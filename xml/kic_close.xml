@@ -1,0 +1,114 @@
+<ROSETTASCRIPTS>
+	<SCOREFXNS>
+		<ScoreFunction name="ref15sfxn" weights="ref2015.wts" />
+		<ScoreFunction name="ref15sfxn_cart" weights="ref2015.wts">
+		 	<Reweight scoretype="pro_close" weight="0.0" />
+            <Reweight scoretype="cart_bonded" weight="0.625" />
+        </ScoreFunction>
+		<ScoreFunction name="bb_only" weights="empty.wts" >
+			<Reweight scoretype="fa_rep" weight="0.1" />
+			<Reweight scoretype="fa_atr" weight="0.2" />
+			<Reweight scoretype="hbond_sr_bb" weight="2.0" />
+			<Reweight scoretype="hbond_lr_bb" weight="2.0" />
+			<Reweight scoretype="rama_prepro" weight="0.45" />
+			<Reweight scoretype="omega" weight="0.4" />
+			<Reweight scoretype="p_aa_pp" weight="0.6" />
+		</ScoreFunction>
+	</SCOREFXNS>
+
+	<RESIDUE_SELECTORS>
+		<Neighborhood name="around_loop" distance="8.0">
+		   <Index resnums="%%start%%-%%end%%"/>
+		</Neighborhood>
+		<Not name="not_around" selector="around_loop"/>
+	</RESIDUE_SELECTORS>
+
+	<TASKOPERATIONS>
+		<RestrictToRepacking name="no_design" />
+		<OperateOnResidueSubset name="prevent_non_loop_from_repacking" selector="not_around" >
+			<PreventRepackingRLT />
+		</OperateOnResidueSubset>
+		<ExtraRotamersGeneric name="extrachi" ex1="1" ex2="1" ex1_sample_level="1" ex2_sample_level="1" />
+	</TASKOPERATIONS>
+	<FILTERS>
+	</FILTERS>
+	<MOVERS>
+
+		<DeclareBond name="new_bond" atom1="C" atom2="N" res1="%%flank1%%" res2="%%flank2%%" />
+
+		<GeneralizedKIC name="genkic" selector="lowest_energy_selector" selector_scorefunction="bb_only"
+			closure_attempts="1000" stop_when_n_solutions_found="1" >
+			<AddResidue res_index="%%r1%%" />
+			<AddResidue res_index="%%r2%%" />
+			<AddResidue res_index="%%r3%%" />
+			<AddResidue res_index="%%r4%%" />
+			<AddResidue res_index="%%r5%%" />
+			<AddResidue res_index="%%r6%%" />
+
+			<SetPivots res1="%%start%%" res2="%%cut%%" res3="%%end%%" atom1="CA" atom2="CA" atom3="CA" />
+
+			<AddPerturber effect="set_dihedral" >
+				<AddAtoms res1="%%r1%%" atom1="C" res2="%%r2%%" atom2="N" />
+				<AddAtoms res1="%%r2%%" atom1="C" res2="%%r3%%" atom2="N" />
+				<AddAtoms res1="%%r3%%" atom1="C" res2="%%r4%%" atom2="N" />
+				<AddAtoms res1="%%r4%%" atom1="C" res2="%%r5%%" atom2="N" />
+				<AddAtoms res1="%%r5%%" atom1="C" res2="%%r6%%" atom2="N" />
+				<AddValue value="180.0" />
+			</AddPerturber>
+
+			<CloseBond res1="%%flank1%%" res2="%%flank2%%" atom1="C" atom2="N" bondlength="1.328685" angle1="121.699997" angle2="116.199993" torsion="180.0" />
+
+
+			<AddPerturber effect="randomize_backbone_by_rama_prepro" >
+					<AddResidue index="%%r1%%" />
+					<AddResidue index="%%r2%%" />
+					<AddResidue index="%%r3%%" />
+					<AddResidue index="%%r4%%" />
+					<AddResidue index="%%r5%%" />
+					<AddResidue index="%%r6%%" />
+			</AddPerturber>
+
+			<AddFilter type="loop_bump_check" />
+
+		</GeneralizedKIC>
+
+		<PackRotamersMover name="pack1" scorefxn="ref15sfxn" task_operations="no_design,extrachi,prevent_non_loop_from_repacking" />
+
+        <MinMover name="min_cart" scorefxn="ref15sfxn_cart" chi="true" bb="1" cartesian="T" >
+        	<MoveMap name="move_loop">
+                <Span begin="1" end="99999" chi="false" bb="false" />
+                <Span begin="%%start%%" end="%%end%%" chi="true" bb="true" />
+            </MoveMap>
+        </MinMover>
+
+        <FastRelax name="refine" scorefxn="ref15sfxn_cart" disable_design="true" task_operations="no_design,extrachi,prevent_non_loop_from_repacking"
+        repeats="5" cartesian="true" >
+	    	<MoveMap name="move_loop">
+	                <Span begin="1" end="99999" chi="false" bb="false" />
+	                <Span begin="%%start%%" end="%%end%%" chi="true" bb="true" />
+	        </MoveMap>
+		</FastRelax>
+
+		<PDBTrajectoryRecorder name="last_accepted" filename="last_accepted.pdb" stride="1" />
+		<PDBTrajectoryRecorder name="current_attempt" filename="current_attempt.pdb" stride="1" />
+
+		<ParsedProtocol name="refine_traj" >
+			Add mover="last_accepted" />
+			<Add mover="refine" />
+			Add mover="current_attempt" />
+		</ParsedProtocol>
+
+		<LoopOver name="loop_kic" mover_name="genkic" iterations="%%close_cycles%%" drift="false" />
+		<LoopOver name="loop_refine" mover_name="refine_traj" iterations="%%refine_cycles%%" drift="true" />
+
+	</MOVERS>
+	<APPLY_TO_POSE>
+	</APPLY_TO_POSE>
+	<PROTOCOLS>
+		<Add mover="new_bond" />
+		<Add mover="loop_kic" />
+		<Add mover="loop_refine" />
+        <Add mover="min_cart" />
+	</PROTOCOLS>
+	<OUTPUT />
+</ROSETTASCRIPTS>
