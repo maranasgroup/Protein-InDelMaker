@@ -1,6 +1,5 @@
-**InDelMutator : A part of IPRO +/- package developed at Prof. Costas Maranas
-lab at The Pennsylvania State University by Ratul Chowdhury **
-**Author of InDelMutator : Veda Sheersh Boorla **
+**Protein-InDelMaker : Developed at Prof. Costas Maranas
+lab at The Pennsylvania State University by Veda Sheersh Boorla **
 **Any bugs/comments/questions to be addressed to mailforveda@gmail.com **
 ** Dated:- 26th November 2019 **
 
