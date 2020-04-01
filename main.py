@@ -26,6 +26,15 @@ to the file\n:')
 	input_path = input('Enter name of .input file\nThe name should contain \
 fullpath to the file\n:')
 	print('-'*100)
+	ligand = input('Do you have a ligand in place? Enter yes or no:\n:')
+	print('-'*100)
+	if ligand=='yes':
+		ligand=True
+		ligand_params = input('Enter ligand params file:?\n:')
+		print('-'*100)
+		partners = input('Enter ligand partners:\n:')
+		print('-'*100)
+		
 	close_cycles = input('Enter number of trials for loop closure\n\
 Default is 20\n:')
 	print('-'*100)
@@ -48,7 +57,7 @@ Default is yes (enter yes or no)\n:')
 					results_path = results_path, pdb_path=pdb_path,
 					input_path=input_path,close_cycles = int(close_cycles), 
 					refine_cycles = int(refine_cycles),relax_cycles=int(relax_cycles),
-					DEBUG=debug)
+					DEBUG=debug,watch=True,ligand=ligand,ligand_params=[ligand_params],partners=partners)
 	indel_mover.run()
 
 if __name__ == '__main__':
