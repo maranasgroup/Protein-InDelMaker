@@ -1,13 +1,50 @@
 from pyrosetta import *
+init(extra_options = "-ex1 -ex2 -ex2aro mute all")
+
 from pyrosetta.rosetta.protocols.relax import relax_pose
+from rosetta.protocols import minimization_packing as pack_min
+
 grafting = pyrosetta.rosetta.protocols.grafting
-relax = pyrosetta.rosetta.protocols.relax
+relax = pyrosetta.rosetta.protocols.relax.FastRelax()
+relax.set_scorefxn(get_fa_scorefxn())
 from core.files import InputFile, PDBFile
 from core.objects import OrderedDict
 from core.make_mover_from_xml import MakePyRosettaMoverFromXML
 from core.kic import KICMove
+from pyrosetta import Pose, Vector1, pose_from_file, create_score_function
+from pyrosetta.rosetta.core.select import residue_selector as selections
+from pyrosetta.rosetta.core.pack.task import TaskFactory
+from pyrosetta.rosetta.core.pack.task import operation
 
-init(extra_options = "-run:constant_seed -mute all")
+def redock(pose,partners):
+    dock_jump = 1 # jump number 1 is the inter-body jump
+    pyrosetta.rosetta.protocols.docking.setup_foldtree(pose,partners,Vector1([dock_jump]))
+
+    # Create ScoreFunctions for centroid and fullatom docking
+    scorefxn = pyrosetta.create_score_function("ref2015.wts")
+
+    # Setup the high resolution (fullatom) docking protocol using DockMCMProtocol.
+    docking = pyrosetta.rosetta.protocols.docking.DockMCMProtocol()
+    # Many of its options and settings can be set using the setter methods.
+    docking.set_scorefxn(scorefxn)
+
+    # # Set the native pose so that the output scorefile contains the pose rmsd metric
+    # native_pose = pose 
+
+    # # Optional: setup a PyMOLObserver
+    # # pyrosetta.rosetta.protocols.moves.AddPyMOLObserver(test_pose, True)
+
+    # # Perform protein-ligand docking
+    # # counter = 0 # for pretty output to PyMOLObserver
+
+    # test_pose = pose.clone() # Reset test pose to original structure
+        
+    # counter += 1 # Change the pose name, for pretty output to PyMOLObserver
+    # test_pose.pdb_info().name(job_output + '_' + str(counter))
+        
+    # Perform docking and output to PyMOL:
+    print('DOCKING'*100)
+    docking.apply(pose) 
 
 class Error(Exception):
    """Base class for other exceptions"""
@@ -25,6 +62,15 @@ def get_pose_number(pose,chain,res):
     return info.pdb2pose(chain,int(res))
 
 def get_pose(filepath): return pose_from_pdb(filepath)
+
+def get_pose_with_ligand(filepath,LIGAND_PARAMS=[]):
+    pose = Pose()
+    ligand_params = Vector1(LIGAND_PARAMS)
+    res_set = pose.conformation().modifiable_residue_type_set_for_conf()
+    res_set.read_files_for_base_residue_types( ligand_params )
+    pose.conformation().reset_residue_type_set_for_conf( res_set )
+    return pose_from_file(filepath
+        )
 
 def determine_Cterm(chain,res): return False
 
@@ -82,7 +128,11 @@ class Mover(object):
                 res = int(res)
                 mutations.append((res,aa))
 
-            self.move = MutMove(self,self.type,self.chain,mutations)
+            if self.indel.ligand:
+                self.move = MutMoveLigand(self,self.type,self.chain,mutations)
+            else:
+                self.move = MutMove(self,self.type,self.chain,mutations)
+
 
 class DelMove(object):
     """docstring for DelMove"""
@@ -93,7 +143,7 @@ class DelMove(object):
         self.deletions = dels
         self.mover = mover
 
-    def apply(self):
+    def apply(self,just_mutate=False):
         DEBUG = self.mover.indel.DEBUG
         pdbf = self.mover.indel.get_file('pdb')
         numbering = self.mover.indel.numbering
@@ -150,7 +200,7 @@ class InsMove(object):
         self.inserts = inserts
         self.mover = mover
 
-    def apply(self):
+    def apply(self,just_mutate=False):
         DEBUG = self.mover.indel.DEBUG
         def _insert(my_res):
             if DEBUG: print('Trying to insert {} after {}'.format(aa,my_res))
@@ -163,7 +213,7 @@ class InsMove(object):
             # WHY nres-2 ?
             
             if DEBUG: print('Idealize successful!')
-            relax.relax_pose(pose,get_fa_scorefxn(),'_0001')
+            relax.apply(pose,get_fa_scorefxn())
             return pose
 
         pdbf = self.mover.indel.get_file('pdb')
@@ -219,6 +269,39 @@ class InsMove(object):
                     if DEBUG: print(self.mover.indel.numbering.maps)
         return self.mover.indel.pose.scores['total_score']
 
+class MutMoveLigand(object):
+    """docstring for MutMoveLigand"""
+    def __init__(self,mover,type,chain,mutations):
+        super(MutMoveLigand, self).__init__()
+        self.type = type
+        self.chain = chain
+        self.mutations = mutations
+        self.mover = mover
+
+
+    def apply(self,just_mutate=True):
+        for num,aa in self.mutations:
+            number = get_pose_number(self.mover.indel.pose,self.chain,num)
+            pyrosetta.toolbox.mutate_residue(self.mover.indel.pose,number,aa)
+            
+            tf = TaskFactory()
+            tf.push_back(operation.InitializeFromCommandline())
+            tf.push_back(operation.RestrictToRepacking())
+            packer = pack_min.PackRotamersMover()
+            packer.task_factory(tf)
+
+            if just_mutate: 
+                packer.apply(self.mover.indel.pose)
+                return self.mover.indel.pose.scores['total_score']
+
+        packer.apply(self.mover.indel.pose)
+
+        #relax.apply(self.mover.indel.pose)
+        redock(self.mover.indel.pose,self.mover.indel.partners)
+        self.mover.indel.pose.dump_pdb('{}/current.pdb'.format(self.mover.indel.temp_path))
+        self.mover.indel.reload_pdbf('{}/current.pdb'.format(self.mover.indel.temp_path))
+        # self.mover.indel._apply_pymol()
+        return self.mover.indel.pose.scores['total_score']
 
 class MutMove(object):
     """docstring for MutMove"""
@@ -229,12 +312,21 @@ class MutMove(object):
         self.mutations = mutations
         self.mover = mover
 
-    def apply(self):
+    def apply(self,just_mutate=False):
         for num,aa in self.mutations:
             number = get_pose_number(self.mover.indel.pose,self.chain,num)
             pyrosetta.toolbox.mutate_residue(self.mover.indel.pose,number,aa)
+            if just_mutate: return self.mover.indel.pose.scores['total_score']
 
-        relax_pose(self.mover.indel.pose,get_fa_scorefxn(),'')
+        tf = TaskFactory()
+        tf.push_back(operation.InitializeFromCommandline())
+        tf.push_back(operation.RestrictToRepacking())
+        packer = pack_min.PackRotamersMover()
+        packer.task_factory(tf)
+
+        packer.apply(self.mover.indel.pose)
+
+        #relax.apply(self.mover.indel.pose)
         self.mover.indel.pose.dump_pdb('{}/current.pdb'.format(self.mover.indel.temp_path))
         self.mover.indel.reload_pdbf('{}/current.pdb'.format(self.mover.indel.temp_path))
         # self.mover.indel._apply_pymol()
@@ -320,7 +412,7 @@ class InDelMut(object):
     """docstring for InDel"""
     def __init__(self, temp_path,results_path,pdb_path,input_path,\
         close_cycles = 20, refine_cycles = 1,relax_cycles=3,
-        DEBUG=True,watch = True):
+        DEBUG=True,watch = True,ligand=False,ligand_params=[],partners='A_X'):
 
         self.DEBUG = DEBUG
 
@@ -338,11 +430,17 @@ class InDelMut(object):
         self.refine_cycles = refine_cycles
         self.close_cycles = close_cycles
         self.relax_cycles = relax_cycles
+        self.ligand = ligand
+        self.partners = partners
 
         self._load_files()
 
         # constant pose - initial pose
-        self.POSE = get_pose(self.pdb_path)
+        if ligand:
+            self.POSE = get_pose_with_ligand(self.pdb_path,ligand_params)
+        else:
+            self.POSE = get_pose(self.pdb_path)
+
 
         pose = Pose()
         # keeps current pose
@@ -383,13 +481,19 @@ class InDelMut(object):
             i+=1
             if DEBUG: print('** Running MOVER {}'.format(i))
             score = move.apply()
+
             if DEBUG: print('** Finished MOVER {}'.format(i))
             self.pose.dump_pdb('{}/result_{}.pdb'.format(self.results_path,self.mover_index+1))
             self.scores[self.mover_index+1] = score
             self.status[self.mover_index+1] = True
             self.mover_index+=1
+
+            if self.ligand:
+                if DEBUG and ligand: print('** Running DOCKING {}'.format(i))
+                redock(self.pose,self.partners)
+
             for i in range(self.relax_cycles):
-                relax_pose(self.pose,get_fa_scorefxn(),'')
+                relax.apply(self.pose)
 
         # input_lines = open(self.input_path).readlines()
 
