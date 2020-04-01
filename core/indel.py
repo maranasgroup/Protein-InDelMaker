@@ -314,6 +314,7 @@ class MutMoveLigand(object):
         self.type = type
         self.chain = chain
         self.mutations = mutations
+        print(mutations)
         self.mover = mover
 
 
@@ -327,15 +328,14 @@ class MutMoveLigand(object):
             tf.push_back(operation.RestrictToRepacking())
             packer = pack_min.PackRotamersMover()
             packer.task_factory(tf)
+            packer.apply(self.mover.indel.pose)
 
-            if just_mutate: 
-                packer.apply(self.mover.indel.pose)
-                return self.mover.indel.pose.scores['total_score']
-
-        packer.apply(self.mover.indel.pose)
+        if just_mutate: 
+            return self.mover.indel.pose.scores['total_score']
 
         #relax.apply(self.mover.indel.pose)
         redock(self.mover.indel.pose,self.mover.indel.partners)
+        relax.apply(self.mover.indel.pose)
         self.mover.indel.pose.dump_pdb('{}/current.pdb'.format(self.mover.indel.temp_path))
         self.mover.indel.reload_pdbf('{}/current.pdb'.format(self.mover.indel.temp_path))
         # self.mover.indel._apply_pymol()
