@@ -15,6 +15,44 @@ from pyrosetta import Pose, Vector1, pose_from_file, create_score_function
 from pyrosetta.rosetta.core.select import residue_selector as selections
 from pyrosetta.rosetta.core.pack.task import TaskFactory
 from pyrosetta.rosetta.core.pack.task import operation
+from pyrosetta.rosetta.core.simple_metrics.metrics import InteractionEnergyMetric
+from pyrosetta.rosetta.utility import vector1_std_string
+from pyrosetta.rosetta.core.select.residue_selector import ChainSelector
+
+def minimize(self):
+    min_mover = pack_min.MinMover()
+    mm = MoveMap()
+    mm.set_bb(True)
+    mm.set_chi(True)
+    mm.set_jump(True)
+    min_mover.movemap(mm)
+    min_mover.score_function(self.scorefxn)
+    min_mover.apply(self.pose)
+
+    return pose.scores['total_score']
+
+def calc_interaction(pose,partners):
+    chains = partners.split('_')
+    chains_a = chains[0]
+    chains_b = chains[1]
+    
+    ie = InteractionEnergyMetric()
+    ca = ChainSelector()
+    cb = ChainSelector()
+    vec1 = vector1_std_string()
+    vec2 = vector1_std_string()
+    for chain in chains_a:
+        vec1.append(chain)
+    for chain in chains_b:
+        vec2.append(chain)
+
+    cb.set_chain_strings(vec2)
+    ca.set_chain_strings(vec1)
+    ie.set_residue_selectors(ca,cb)
+    
+    ie.apply(pose)
+    
+    return pose.scores['interaction_energy']
 
 def redock(pose,partners):
     dock_jump = 1 # jump number 1 is the inter-body jump
@@ -43,7 +81,7 @@ def redock(pose,partners):
     # test_pose.pdb_info().name(job_output + '_' + str(counter))
         
     # Perform docking and output to PyMOL:
-    print('DOCKING'*100)
+    # print('DOCKING'*100)
     docking.apply(pose) 
 
 class Error(Exception):
@@ -310,6 +348,7 @@ class MutMove(object):
         self.type = type
         self.chain = chain
         self.mutations = mutations
+        print(mutations)
         self.mover = mover
 
     def apply(self,just_mutate=False):
@@ -488,15 +527,26 @@ class InDelMut(object):
             self.status[self.mover_index+1] = True
             self.mover_index+=1
 
-            if self.ligand:
-                if DEBUG and ligand: print('** Running DOCKING {}'.format(i))
-                redock(self.pose,self.partners)
+            if self.relax_cycles == 0:
+                if self.ligand:
+                    if DEBUG and self.ligand: print('** Running DOCKING'.format(i))
+                    redock(self.pose,self.partners)
 
             for i in range(self.relax_cycles):
+                if self.ligand:
+                    if DEBUG and self.ligand: print('** Running DOCKING'.format(i))
+                    redock(self.pose,self.partners)
                 relax.apply(self.pose)
 
         # input_lines = open(self.input_path).readlines()
 
+        if self.ligand:
+            interaction_energy = calc_interaction(self.pose,self.partners)
+
+            f = open('{}/interaction_score.txt'.format(self.results_path),'w')
+            f.write('{}\n'.format(interaction_energy))
+            f.close()
+      
         f = open('{}/scores.txt'.format(self.results_path),'w')
         for index,score in self.scores.items():
             f.write('{}\t{}\n'.format(index,score))
