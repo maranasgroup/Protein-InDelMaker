@@ -1,5 +1,5 @@
 from pyrosetta import *
-init(extra_options = "-ex1 -ex2 -ex2aro -mute all")
+init(extra_options = "-ex1 -ex2 -ex2aro -mute all -ignore_zero_occupancy false -ignore_unrecognized_res")
 
 from pyrosetta.rosetta.protocols.relax import relax_pose
 from rosetta.protocols import minimization_packing as pack_min
