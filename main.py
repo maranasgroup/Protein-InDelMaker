@@ -34,6 +34,10 @@ fullpath to the file\n:')
 		print('-'*100)
 		partners = input('Enter ligand partners:\n:')
 		print('-'*100)
+	else:
+		ligand = False
+		ligand_params=[]
+		partners = ''
 		
 	close_cycles = input('Enter number of trials for loop closure\n\
 Default is 20\n:')
@@ -59,6 +63,7 @@ Default is yes (enter yes or no)\n:')
 					refine_cycles = int(refine_cycles),relax_cycles=int(relax_cycles),
 					DEBUG=debug,watch=True,ligand=ligand,ligand_params=[ligand_params],partners=partners)
 	indel_mover.run()
+	return indel_mover
 
 if __name__ == '__main__':
 	interactive_main()
