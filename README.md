@@ -119,7 +119,8 @@ After the run is complete, you should see your results in ./results/demo/
 **Limitations**:
 1.Works only on protein molecules. If pdb file contains any non-protein
 molecules, they **cannot** be modified. Also,interactions/energies contributed
-by non-protein molecules are ignored.
+by non-protein molecules are ignored. Future versions of the package will fix
+this limitation.
 2.Insertions and Deletions work only on residues which are at least 3 residues
 away from both N and C terminus.
 
@@ -130,9 +131,7 @@ away from both N and C terminus.
   the residue numbers are integers. A script 'clean_pdb.py' from rosetta tools
   has been provided in ./scripts/ for this purpose.
 
-2.The package performs worse for insertions compared to deletions and
-  mutations. Also, the package might give distorted structures for
-  non-globular proteins since the default rosetta energy function used.
-  Future versions of the package will be aimed to perform better with non-
-  globular proteins as well.
+2.The accuracy of the package generally drops with the number of insertions or 
+  deletions due to the cumulative effect. See the IPRO+/- publication for a benchmark
+  on reproducing crystal structures of indel variants of antibodies.
   
