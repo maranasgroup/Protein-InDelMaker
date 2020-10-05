@@ -130,3 +130,8 @@ away from both N and C terminus.
   non-globular proteins since the default rosetta energy function used.
   Future versions of the package will be aimed to perform better with non-
   globular proteins as well.
+  
+**Citation**:
+If you find this code useful, please cite the following article. Thanks.
+
+Chowdhury, R., Grisewood, M.J., Boorla, V.S., Yan, Q., Pfleger, B.F. and Maranas, C.D., 2020. IPRO+/−: Computational Protein Design Tool Allowing for Insertions and Deletions. Structure.
