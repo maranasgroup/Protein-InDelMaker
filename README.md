@@ -1,5 +1,6 @@
 **Protein-InDelMaker : Developed at Prof. Costas Maranas
 lab at The Pennsylvania State University by Veda Sheersh Boorla**
+
 **Any bugs/comments/questions to be addressed to mailforveda@gmail.com**
 
 **Citation**:
