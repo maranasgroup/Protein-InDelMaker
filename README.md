@@ -3,10 +3,15 @@ lab at The Pennsylvania State University by Veda Sheersh Boorla **
 **Any bugs/comments/questions to be addressed to mailforveda@gmail.com **
 ** Dated:- 26th November 2019 **
 
+**Citation**:
+If you use this package, please cite the following article. Thanks.
+
+Chowdhury, R., Grisewood, M.J., Boorla, V.S., Yan, Q., Pfleger, B.F. and Maranas, C.D., 2020. IPRO+/−: Computational Protein Design Tool Allowing for Insertions and Deletions. Structure.
+
 ** Requirements**:
 Make sure your system has these installed before running the package
 1. Python 3.7 and above
-2. PyRosetta version 4 for Python 3.7
+2. PyRosetta version 4 for Python 3.7 (http://www.pyrosetta.org/dow)
 3. Numpy version 1.16 and above
 
 **Input files preparation**:
@@ -131,7 +136,3 @@ away from both N and C terminus.
   Future versions of the package will be aimed to perform better with non-
   globular proteins as well.
   
-**Citation**:
-If you find this code useful, please cite the following article. Thanks.
-
-Chowdhury, R., Grisewood, M.J., Boorla, V.S., Yan, Q., Pfleger, B.F. and Maranas, C.D., 2020. IPRO+/−: Computational Protein Design Tool Allowing for Insertions and Deletions. Structure.
