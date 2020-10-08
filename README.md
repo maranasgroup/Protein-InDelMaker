@@ -71,24 +71,37 @@ Navigate to the root directory of InDelMutator in a shell and run the following
 > python main.py
 **Enter a name for storing your results (Results are stored in ./results/name/)
 Name can contain numbers,letters,underscore only**
+
 :demo
+
 **Enter name of .pdb file
 The name should contain fullpathto the file**
+
 :./demo.pdb
+
 **Enter name of .input file
 The name should contain fullpath to the file**
+
 :./demo.input
+
 **Enter number of trials for loop closure
 Default is 20**
+
 :20
+
 **Enter number of refinement cycles after loop closure
 Default is 1**
+
 :1
+
 **Enter number of relax cycles at the end of each simulation
 Default is 3**
+
 :3
+
 **Run in debug mode?
 Default is yes (enter yes or no)**
+
 :yes
 
 After the run is complete, you should see your results in ./results/demo/
@@ -117,12 +130,15 @@ After the run is complete, you should see your results in ./results/demo/
 
 
 **Limitations**:
-1.Works only on protein molecules. If pdb file contains any non-protein
-molecules, they **cannot** be modified. Also,interactions/energies contributed
-by non-protein molecules are ignored. Future versions of the package will fix
-this limitation.
-2.Insertions and Deletions work only on residues which are at least 3 residues
+
+1.Insertions and Deletions work only on residues which are at least 3 residues
 away from both N and C terminus.
+
+**FIXED**
+
+1. Including non-protein molecules is now possible. The additional input file
+needed is a .params file that needs to be prepared as descirbed here:- 
+https://www.rosettacommons.org/demos/latest/tutorials/prepare_ligand/prepare_ligand_tutorial
 
 **Known issues**:
 1.Fails if pdb file has non integer residue numbers
