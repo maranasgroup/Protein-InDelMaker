@@ -2,7 +2,7 @@ from pyrosetta import *
 init(extra_options = "-ex1 -ex2 -ex2aro -mute all -ignore_zero_occupancy false -ignore_unrecognized_res")
 
 from pyrosetta.rosetta.protocols.relax import relax_pose
-from rosetta.protocols import minimization_packing as pack_min
+from pyrosetta.rosetta.protocols import minimization_packing as pack_min
 
 grafting = pyrosetta.rosetta.protocols.grafting
 relax = pyrosetta.rosetta.protocols.relax.FastRelax()
@@ -251,7 +251,7 @@ class InsMove(object):
             # WHY nres-2 ?
             
             if DEBUG: print('Idealize successful!')
-            relax.apply(pose,get_fa_scorefxn())
+            relax.apply(pose)
             return pose
 
         pdbf = self.mover.indel.get_file('pdb')
