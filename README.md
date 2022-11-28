@@ -142,7 +142,7 @@ https://www.rosettacommons.org/demos/latest/tutorials/prepare_ligand/prepare_lig
 
 **ADDED FUNCTIONALITY**
 
-1. 28th November, 2022
+1. 28th November, 2022 - Added argparse functionality
 
 **Known issues**:
 1.Fails if pdb file has non integer residue numbers
