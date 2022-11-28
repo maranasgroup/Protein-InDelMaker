@@ -140,6 +140,10 @@ away from both N and C terminus.
 needed is a .params file that needs to be prepared as descirbed here:- 
 https://www.rosettacommons.org/demos/latest/tutorials/prepare_ligand/prepare_ligand_tutorial
 
+**ADDED FUNCTIONALITY**
+
+1. 28th November, 2022
+
 **Known issues**:
 1.Fails if pdb file has non integer residue numbers
   For example, '12B'
