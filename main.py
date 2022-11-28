@@ -66,23 +66,9 @@ Default is yes (enter yes or no)\n:')
 	indel_mover.run()
 	return indel_mover
 
-def default_main():
-	parser = argparse.ArgumentParser(description="Make predictions for KCAT/KM")
-
-	parser.add_argument("run_name", help="'Enter a {name} for storing your results, {name} cannot have spaces (Results are stored in directory ./results/{name})", type=str)
-	parser.add_argument("pdb_path", help="'Enter path to input .pdb file", type=str)
-	parser.add_argument("input_path", help="'Enter path to input .input file", type=str)
-	parser.add_argument("--score_with_ligand", help="Is there a ligand present in the pdb file for scoring?", action="store_true", default=False)
-	parser.add_argument("--ligand_params_path", help="params file in Rosetta format for ligand", type=str)
-	parser.add_argument("--ligand_partners", help="partners string in Rosetta format for scoring (eg., A_B)", type=str)
-	parser.add_argument("--n_loop_closure_cycles", help="number of cycles for loop closure", type=int,default=20)
-	parser.add_argument("--n_loop_closure_refine_cycles", help="number of cycles for refinment after loop closure", type=int,default=1)
-	parser.add_argument("--n_relax_cycles", help="number of cycles for relax", type=int,default=3)
-	parser.add_argument("--debug_mode", help="Run in debug mode?", action="store_true", default=False)
-
-	args = parser.parse_args()
+def main(args):
+	
 	run_name = args.run_name
-	results_path = args.results_path
 	pdb_path = args.pdb_path
 	input_path = args.input_path
 	ligand = args.score_with_ligand
@@ -92,12 +78,12 @@ def default_main():
 	debug = args.debug_mode
 	
 	results_path = os.path.abspath('./results/{}'.format(run_name))
-	if os.exists(results_path):
+	if os.path.exists(results_path):
 		print(f'{results_path} already exists..this will overwrite previous any previous files, quit now if you donot want that')
 	else:
 		os.mkdir(results_path)
 	try:
-		os.mkdir(os.path.abspath('./results/{}/temp'.format(run_name))
+		os.mkdir(os.path.abspath('./results/{}/temp'.format(run_name)))
 	except:
 		pass
 	
@@ -120,5 +106,19 @@ def default_main():
 	return indel_mover
 
 if __name__ == '__main__':
-	#interactive_main()
-	default_main()
+	parser = argparse.ArgumentParser(description="Protein-InDelMaker")
+
+	parser.add_argument("run_name", help="'Enter a {name} for storing your results, {name} cannot have spaces (Results are stored in directory ./results/{name})", type=str)
+	parser.add_argument("pdb_path", help="'Enter path to input .pdb file", type=str)
+	parser.add_argument("input_path", help="'Enter path to input .input file", type=str)
+	parser.add_argument("--score_with_ligand", help="Is there a ligand present in the pdb file for scoring?", action="store_true", default=False)
+	parser.add_argument("--ligand_params_path", help="params file in Rosetta format for ligand", type=str)
+	parser.add_argument("--ligand_partners", help="partners string in Rosetta format for scoring (eg., A_B)", type=str)
+	parser.add_argument("--n_loop_closure_cycles", help="number of cycles for loop closure", type=int,default=20)
+	parser.add_argument("--n_loop_closure_refine_cycles", help="number of cycles for refinment after loop closure", type=int,default=1)
+	parser.add_argument("--n_relax_cycles", help="number of cycles for relax", type=int,default=3)
+	parser.add_argument("--debug_mode", help="Run in debug mode?", action="store_true", default=False)
+
+	args = parser.parse_args()
+	
+	main(args)
