@@ -68,43 +68,12 @@ gradient based minimization.
 
 **Running a demo** :
 Navigate to the root directory of InDelMutator in a shell and run the following
-> python main.py
-**Enter a name for storing your results (Results are stored in ./results/name/)
-Name can contain numbers,letters,underscore only**
+> python main.py demo demo.pdb demo.input
 
-:demo
+After the run is complete (which could take a few minutes), you should see your results in ./results/demo/
 
-**Enter name of .pdb file
-The name should contain fullpathto the file**
-
-:./demo.pdb
-
-**Enter name of .input file
-The name should contain fullpath to the file**
-
-:./demo.input
-
-**Enter number of trials for loop closure
-Default is 20**
-
-:20
-
-**Enter number of refinement cycles after loop closure
-Default is 1**
-
-:1
-
-**Enter number of relax cycles at the end of each simulation
-Default is 3**
-
-:3
-
-**Run in debug mode?
-Default is yes (enter yes or no)**
-
-:yes
-
-After the run is complete, you should see your results in ./results/demo/
+To read the help about possible arguments to main.py, run
+> python main.py -h
 
 **Results**:
 * A result.pdb file will be output after all modifications of every line in
